@@ -7,6 +7,7 @@
 from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import division
+from cmath import log
 
 from ..CoreBu.ABuEnv import EMarketDataSplitMode, EMarketTargetType
 from ..MarketBu import ABuSymbolPd
@@ -15,6 +16,10 @@ from ..CoreBu import ABuEnv
 from ..CoreBu.ABuBase import PickleStateMixin
 from ..CoreBu.ABuFixes import six
 
+import tushare as ts
+import talib
+import pandas as pd
+import datetime
 __author__ = '阿布'
 __weixin__ = 'abu_quant'
 
@@ -62,9 +67,21 @@ class AbuBenchmark(PickleStateMixin):
         self.end = end
         self.n_folds = n_folds
         # 基准获取数据使用data_mode=EMarketDataSplitMode.E_DATA_SPLIT_SE，即不需要对齐其它，只需要按照时间切割
-        self.kl_pd = ABuSymbolPd.make_kl_df(benchmark, data_mode=EMarketDataSplitMode.E_DATA_SPLIT_SE,
-                                            n_folds=n_folds,
-                                            start=start, end=end)
+        # self.kl_pd = ABuSymbolPd.make_kl_df(benchmark, data_mode=EMarketDataSplitMode.E_DATA_SPLIT_SE,
+        #                                     n_folds=n_folds,
+        #                                     start=start, end=end)
+        ts.set_token('9b512522e0c4b9b128b047845bb4f0586f4d28daf91f8e92682f34e4')   
+        self.kl_pd = ts.pro_bar(ts_code='000300.SH', asset='I',start_date = self.start,end_date=self.end)
+        date_index = self.kl_pd['trade_date'].apply(
+            lambda x: pd.to_datetime(x, format="%Y-%m-%d").strftime('%Y-%m-%d'))
+        date_index.name = 'date'
+        self.kl_pd.set_index(date_index, inplace=True)
+        self.kl_pd = self.kl_pd.sort_index()
+        self.kl_pd['atr21'] = talib.ATR(self.kl_pd.high, self.kl_pd.low, self.kl_pd.close, timeperiod=21)
+        self.kl_pd['key'] = list(range(len(self.kl_pd)))
+        tt = pd.to_datetime(self.kl_pd.index)
+        self.kl_pd['date'] = tt.year * 10000 + tt.month * 100 + tt.day
+        self.kl_pd.index = tt
 
         if rs and self.kl_pd is None:
             # 如果基准时间序列都是none，就不要再向下运行了

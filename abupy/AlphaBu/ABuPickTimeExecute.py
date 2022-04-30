@@ -152,7 +152,8 @@ def do_symbols_with_same_factors(target_symbols, benchmark, buy_factors, sell_fa
 
         # 要sort'Date', 'action'两项，不然之后的行apply_action_to_capital后有问题
         # noinspection PyUnresolvedReferences
-        action_pd = action_pd.sort_values(['Date', 'action'])
+        # action_pd = action_pd.sort_values(['Date', 'action'])
+        action_pd = action_pd.sort_values(['Date','action', 'symbol'])
         action_pd.index = np.arange(0, action_pd.shape[0])
         # noinspection PyUnresolvedReferences
         orders_pd = orders_pd.sort_values(['buy_date'])

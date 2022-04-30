@@ -93,7 +93,8 @@ class AbuPickTimeMaster(object):
         if orders_pd is not None and action_pd is not None:
             # 将合并后的结果按照时间及行为进行排序
             # noinspection PyUnresolvedReferences
-            action_pd = action_pd.sort_values(['Date', 'action'])
+            # action_pd = action_pd.sort_values(['Date', 'action'])
+            action_pd = action_pd.sort_values(['Date', 'action', 'symbol'])
             action_pd.index = np.arange(0, action_pd.shape[0])
             # noinspection PyUnresolvedReferences
             orders_pd = orders_pd.sort_values(['buy_date'])

@@ -29,6 +29,10 @@ from ..CoreBu.ABuDeprecated import AbuDeprecated
 # noinspection PyUnresolvedReferences
 from ..CoreBu.ABuFixes import xrange, range, filter
 
+from ..MarketBu.ABuDataParser import BDParser, TXParser, NTParser, SNUSParser,JinbeiParser
+import tushare as ts
+import datetime
+
 """网络请求（连接10秒，接收60秒）超时时间"""
 K_TIME_OUT = (10, 60)
 
@@ -440,3 +444,47 @@ class HBApi(TCBaseMarket, SupportMixin):
     def minute(self, *args, **kwargs):
         """分钟k线接口"""
         raise NotImplementedError('HBApi minute NotImplementedError!')
+from ..MarketBu.ABuDataParser import BDParser, TXParser, NTParser, SNUSParser,JinbeiParser
+import tushare as ts
+import datetime
+ 
+ 
+class JinbeiApi(StockBaseMarket, SupportMixin):
+#     """snus数据源，支持美股"""
+#     K_NET_BASE = "http://stock.finance.sina.com.cn/usstock/api/json_v2.php/US_MinKService.getDailyK?" \
+#                  "symbol=%s&___qn=3n"
+ 
+    def __init__(self, symbol):
+        """
+        :param symbol: Symbol类型对象
+        """
+        super(JinbeiApi, self).__init__(symbol)
+        # 设置数据源解析对象类
+        self.data_parser_cls = JinbeiParser
+ 
+    def _support_market(self):
+        """声明数据源支持国内A股"""
+        return [EMarketTargetType.E_MARKET_TARGET_CN]
+ 
+    def kline(self,n_folds=2, start='2020-01-01', end=None):
+        """日k线接口"""
+#         symbol = symbol
+#         print(self._symbol)
+#         print(type(self._symbol))
+#         print(str(self._symbol))
+        symbol = str(self._symbol)
+        # ts的验证码
+        # ts.set_token('1ea5e3054ea51eab6c0071b019fe8dd0aa3ddf03bdc77e46bfbe047a')
+        pro = ts.pro_api('9b512522e0c4b9b128b047845bb4f0586f4d28daf91f8e92682f34e4')
+        start_dt = start
+        time_temp = datetime.datetime.now() - datetime.timedelta(days=1)
+        end_dt = time_temp.strftime('%Y%m%d')
+        df = pro.daily(ts_code=symbol[-6:]+'.'+symbol[3:5].upper(), start_date=start_dt, end_date=end_dt)
+        kl_df = self.data_parser_cls(self._symbol,df).df
+        if kl_df is None:
+            return None
+        return StockBaseMarket._fix_kline_pd(kl_df, n_folds, start, end)
+ 
+    def minute(self, n_fold=5, *args, **kwargs):
+        """分钟k线接口"""
+        raise NotImplementedError('JinbeiApi minute NotImplementedError!')

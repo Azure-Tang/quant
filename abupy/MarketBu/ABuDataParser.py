@@ -351,3 +351,27 @@ class BDParser(object):
 
         except Exception as e:
             logging.exception(e)
+            
+@AbuDataParseWrap()
+class JinbeiParser(object):
+    """snus数据源解析类，被类装饰器AbuDataParseWrap装饰"""
+    def __init__(self, symbol, df):
+        """
+        :param symbol: 请求的symbol str对象
+        :param json_dict: 请求返回的json数据
+        """
+        data = df
+        # 为AbuDataParseWrap准备类必须的属性序列
+        if len(data) > 0:
+            # 时间日期序列
+            self.date = [item for item in df['trade_date']]
+            # 开盘价格序列
+            self.open = [item for item in df['open']]
+            # 收盘价格序列
+            self.close = [item for item in df['close']]
+            # 最高价格序列
+            self.high = [item for item in df['high']]
+            # 最低价格序列
+            self.low = [item for item in df['low']]
+            # 成交量序列
+            self.volume = [item for item in df['vol']]
